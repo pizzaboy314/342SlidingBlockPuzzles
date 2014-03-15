@@ -1,5 +1,223 @@
 package classes;
 
-public class Grid {
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.GridLayout;
+import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
+
+public class Grid implements MouseListener {
+	
+	private final int size = 6; // SIZE OF BOARD
+	private final int boardSize = size * 80;
+	
+	private JFrame mainFrame; // main window
+	private JPanel content; // to contain the reset/hint bar and main board
+	private JPanel board; // contains "grid" of JLabels
+	private JPanel bar; // contains reset/hint/solution
+	private Button[][] buttonGrid; // grid of JLabels
+	private Button selectedButton;
+	private Color[] colors;
+	
+	public Grid(String windowLabel) {
+		mainFrame = new JFrame(windowLabel);
+		mainFrame.setResizable(false);
+		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+		create_menu();
+		createColors();
+		init();
+	}
+	
+	public void create_menu() {
+
+		JMenuBar menu = new JMenuBar();
+
+		JMenu Game = new JMenu("Game"), Help = new JMenu("Help");
+
+		JMenuItem eXit = new JMenuItem("eXit"), help = new JMenuItem("Help"), about = new JMenuItem("About");
+
+		eXit.setMnemonic('X');
+		help.setMnemonic('H');
+		about.setMnemonic('A');
+
+		Game.setMnemonic('G');
+		Game.add(eXit);
+
+		Help.setMnemonic('H');
+		Help.add(help);
+		Help.add(about);
+
+		menu.add(Game);
+		menu.add(Help);
+
+		eXit.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				System.exit(0);
+			}
+
+		});
+
+		help.addActionListener(new ActionListener() {
+			class helpWindow {
+				public helpWindow() {
+					JLabel msg = new JLabel();
+
+					msg.setText("Google \"how to play Rush Hour\".");
+					msg.setBorder(new EmptyBorder(10, 10, 10, 10));
+
+					JFrame about = new JFrame("Help");
+
+					about.getContentPane().setLayout(new BorderLayout());
+					about.getContentPane().add(msg, "Center");
+					about.pack();
+					about.setVisible(true);
+				}
+			}
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				@SuppressWarnings("unused")
+				helpWindow help = new helpWindow();
+			}
+		});
+
+		about.addActionListener(new ActionListener() {
+			class aboutWindow {
+				public aboutWindow() {
+					JLabel msg = new JLabel();
+
+					msg.setText("Programmers: George Saldaña, Bryan Spahr");
+					msg.setBorder(new EmptyBorder(10, 10, 10, 10));
+
+					JFrame about = new JFrame("About");
+
+					about.getContentPane().setLayout(new BorderLayout());
+					about.getContentPane().add(msg, "Center");
+					about.pack();
+					about.setVisible(true);
+				}
+
+			}
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				@SuppressWarnings("unused")
+				aboutWindow about = new aboutWindow();
+			}
+		});
+		mainFrame.setJMenuBar(menu);
+	}
+	
+	public void init(){
+		JPanel panel = new JPanel(new GridLayout(size, size));
+		panel.setPreferredSize(new Dimension(boardSize, boardSize));
+
+		Random r = new Random(System.currentTimeMillis());
+		List<Point> spaces = new ArrayList<Point>();
+		Point tmp;
+
+		for (int i = 0; i < 16; i++) {
+			tmp = new Point();
+			tmp.x = r.nextInt(size);
+			tmp.y = r.nextInt(size);
+			while (spaces.contains(tmp)) {
+				tmp.x = r.nextInt(size);
+				tmp.y = r.nextInt(size);
+			}
+			spaces.add(tmp);
+		}
+
+		buttonGrid = new Button[size][size];
+		for (int i = 0; i < size; i++) {
+			for (int j = 0; j < size; j++) {
+				Color c = new Color(r.nextInt(256), r.nextInt(256), r.nextInt(256));
+				Button b = new Button(i, j, c);
+				b.addMouseListener(this);
+				buttonGrid[i][j] = b;
+				panel.add(b);
+			}
+		}
+		
+		for (Point p : spaces) {
+			Button b = buttonGrid[p.y][p.x];
+			b.setBlank(true);
+		}
+
+		mainFrame.add(panel);
+		mainFrame.pack();
+		mainFrame.setVisible(true);
+
+	}
+
+	public void createColors() {
+		colors = new Color[10];
+		colors[0] = new Color(0, 255, 255);
+		colors[1] = new Color(0, 0, 255);
+		colors[2] = new Color(138, 43, 226);
+		colors[3] = new Color(127, 255, 0);
+		colors[4] = new Color(0, 100, 0);
+		colors[5] = new Color(255, 40, 147);
+		colors[6] = new Color(255, 215, 0);
+		colors[7] = new Color(0, 255, 0);
+		colors[8] = new Color(255, 69, 0);
+		colors[9] = new Color(148, 0, 211);
+	}
+
+	public void performMove(int destI, int destJ) {
+		int startI = selectedButton.getI();
+		int startJ = selectedButton.getJ();
+		int endI = destI;
+		int endJ = destJ;
+
+	}
+
+	@Override
+	public void mouseClicked(MouseEvent e) {
+		Button b = (Button) e.getSource();
+
+		if (b.isBlank() == false) {
+			if (selectedButton != null) {
+				selectedButton.setSelected(false);
+			}
+			selectedButton = b;
+			selectedButton.setSelected(true);
+		} else {
+			if (selectedButton != null) {
+				performMove(b.getI(), b.getJ());
+			}
+		}
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
+	}
 }
