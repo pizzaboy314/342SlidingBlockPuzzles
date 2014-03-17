@@ -8,20 +8,36 @@ import javax.swing.JLabel;
 public class Button extends JLabel {
 
 	private int i, j;
+	private int position;
+	private String type;
+	private String tag;
 	private Color c;
 	private boolean selected;
 	private boolean blank;
 
-	public Button(int i, int j, Color c) {
+	public Button(int i, int j, String type) {
 		this.i = i;
 		this.j = j;
-		this.c = c;
+		this.type = type;
 
+		tag = "blank";
 		selected = false;
 		blank = false;
 
 		setOpaque(true);
+	}
+	
+	public void setAttributes(String tag, String type, int pos, Color c, boolean blank) {
+		this.tag = tag;
+		this.type = type;
+		this.position = pos;
+		this.c = c;
+		this.blank = blank;
+
 		setBackground(c);
+		if (blank == false) {
+			setBorder(null);
+		}
 	}
 
 	public int getI() {
@@ -47,7 +63,20 @@ public class Button extends JLabel {
 	public void setSelected(boolean selected) {
 		this.selected = selected;
 		if (selected == true) {
-			setBorder(BorderFactory.createLineBorder(Color.black, 2));
+			String[] dims = type.split("x");
+			int dimI = Integer.parseInt(dims[0]);
+			int dimJ = Integer.parseInt(dims[1]);
+
+			if (dimI == 1) {
+				if (position == 0) {
+					setBorder(BorderFactory.createMatteBorder(2, 2, 2, 0, Color.black));
+				} else if (position == dimJ - 1) {
+					setBorder(BorderFactory.createMatteBorder(2, 0, 2, 2, Color.black));
+				} else {
+					setBorder(BorderFactory.createMatteBorder(2, 0, 2, 0, Color.black));
+				}
+			}
+
 		} else {
 			setBorder(null);
 		}
@@ -70,7 +99,32 @@ public class Button extends JLabel {
 		this.blank = blank;
 		if (blank == true) {
 			setC(new Color(210, 210, 210));
+			setBorder(BorderFactory.createLineBorder(Color.lightGray, 1));
 		}
+	}
+
+	public int getPosition() {
+		return position;
+	}
+
+	public void setPosition(int position) {
+		this.position = position;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	public String getTag() {
+		return tag;
+	}
+
+	public void setTag(String tag) {
+		this.tag = tag;
 	}
 
 }

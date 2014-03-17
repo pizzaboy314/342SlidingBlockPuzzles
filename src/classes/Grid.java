@@ -4,11 +4,14 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridLayout;
-import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -23,16 +26,17 @@ import javax.swing.border.EmptyBorder;
 
 public class Grid implements MouseListener {
 	
-	private final int size = 6; // SIZE OF BOARD
-	private final int boardSize = size * 80;
+	private int size = 6; // SIZE OF BOARD
+	private int boardSize;
 	
 	private JFrame mainFrame; // main window
 	private JPanel content; // to contain the reset/hint bar and main board
-	private JPanel board; // contains "grid" of JLabels
 	private JPanel bar; // contains reset/hint/solution
 	private Button[][] buttonGrid; // grid of JLabels
 	private Button selectedButton;
 	private Color[] colors;
+	private List<String> locations;
+	private int redRow;
 	
 	public Grid(String windowLabel) {
 		mainFrame = new JFrame(windowLabel);
@@ -40,7 +44,6 @@ public class Grid implements MouseListener {
 		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		create_menu();
-		createColors();
 		init();
 	}
 	
@@ -80,7 +83,7 @@ public class Grid implements MouseListener {
 				public helpWindow() {
 					JLabel msg = new JLabel();
 
-					msg.setText("Google \"how to play Rush Hour\".");
+					msg.setText("Slide the vehicles until the red block reaches the right side.");
 					msg.setBorder(new EmptyBorder(10, 10, 10, 10));
 
 					JFrame about = new JFrame("Help");
@@ -126,43 +129,92 @@ public class Grid implements MouseListener {
 	}
 	
 	public void init(){
+		createColors();
+		readFile();
+
+		boardSize = size * 80;
+
 		JPanel panel = new JPanel(new GridLayout(size, size));
 		panel.setPreferredSize(new Dimension(boardSize, boardSize));
 
-		Random r = new Random(System.currentTimeMillis());
-		List<Point> spaces = new ArrayList<Point>();
-		Point tmp;
+		createRequiredButtons();
 
-		for (int i = 0; i < 16; i++) {
-			tmp = new Point();
-			tmp.x = r.nextInt(size);
-			tmp.y = r.nextInt(size);
-			while (spaces.contains(tmp)) {
-				tmp.x = r.nextInt(size);
-				tmp.y = r.nextInt(size);
-			}
-			spaces.add(tmp);
-		}
-
-		buttonGrid = new Button[size][size];
 		for (int i = 0; i < size; i++) {
 			for (int j = 0; j < size; j++) {
-				Color c = new Color(r.nextInt(256), r.nextInt(256), r.nextInt(256));
-				Button b = new Button(i, j, c);
-				b.addMouseListener(this);
-				buttonGrid[i][j] = b;
+				Button b = buttonGrid[i][j];
 				panel.add(b);
 			}
-		}
-		
-		for (Point p : spaces) {
-			Button b = buttonGrid[p.y][p.x];
-			b.setBlank(true);
 		}
 
 		mainFrame.add(panel);
 		mainFrame.pack();
 		mainFrame.setVisible(true);
+
+	}
+
+	public void readFile() {
+		File file = new File("proj3a.data"); // using sample data for now
+		if (!file.exists()) {
+			try {
+				file.createNewFile();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+		List<String> list = new ArrayList<String>();
+		try {
+			BufferedReader reader = new BufferedReader(new FileReader("proj3a.data"));
+			String s;
+			if ((s = reader.readLine()) != null) {
+				size = Integer.parseInt(s.substring(0, 1));
+				System.out.println(size);
+			}
+			while ((s = reader.readLine()) != null) {
+				list.add(s);
+				System.out.println(s);
+			}
+			reader.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void createRequiredButtons() {
+		Random r = new Random(System.currentTimeMillis());
+		buttonGrid = new Button[size][size];
+		String[] req = new String[] { "1x2", "1x3", "2x1", "3x1" };
+
+		// initialize grid to blank tiles
+		for (int i = 0; i < size; i++) {
+			for (int j = 0; j < size; j++) {
+				Button b = new Button(i, j, "blank");
+				b.setBlank(true);
+				b.addMouseListener(this);
+				buttonGrid[i][j] = b;
+			}
+		}
+
+		int redI = r.nextInt(size / 2) + (size / 2);
+		int redJ1 = r.nextInt(size / 2 - 1);
+		int redJ2;
+		if (redJ1 == size - 1) {
+			redJ2 = redJ1 - 1;
+		} else {
+			redJ2 = redJ1 + 1;
+		}
+		Button redCar1 = buttonGrid[redI][redJ1];
+		Button redCar2 = buttonGrid[redI][redJ2];
+		redCar1.setAttributes("redcar", "1x2", (redJ2 > redJ1) ? 0 : 1, new Color(255, 0, 0), false);
+		redCar2.setAttributes("redcar", "1x2", (redJ2 > redJ1) ? 1 : 0, new Color(255, 0, 0), false);
+		redRow = redI;
+
+		for (String s : req) {
+			String[] dims = s.split("x");
+			int dimI = Integer.parseInt(dims[0]);
+			int dimJ = Integer.parseInt(dims[1]);
+
+		}
 
 	}
 
@@ -188,16 +240,27 @@ public class Grid implements MouseListener {
 
 	}
 
+	public void selectButton(Button b, boolean val) {
+		if (val == true) {
+			selectedButton = b;
+		}
+		selectedButton.setSelected(val);
+		if (b.getType().equals("1x2")) {
+			int j = (b.getPosition() == 0) ? (b.getJ() + 1) : (b.getJ() - 1);
+			Button other = buttonGrid[b.getI()][j];
+			other.setSelected(val);
+		}
+	}
+
 	@Override
 	public void mouseClicked(MouseEvent e) {
 		Button b = (Button) e.getSource();
 
 		if (b.isBlank() == false) {
 			if (selectedButton != null) {
-				selectedButton.setSelected(false);
+				selectButton(selectedButton, false);
 			}
-			selectedButton = b;
-			selectedButton.setSelected(true);
+			selectButton(b, true);
 		} else {
 			if (selectedButton != null) {
 				performMove(b.getI(), b.getJ());
