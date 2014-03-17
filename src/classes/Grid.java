@@ -36,7 +36,7 @@ public class Grid implements MouseListener {
 	private Button selectedButton;
 	private Color[] colors;
 	private List<String> locations;
-	private int redRow;
+	private String redLoc;
 	
 	public Grid(String windowLabel) {
 		mainFrame = new JFrame(windowLabel);
@@ -170,11 +170,16 @@ public class Grid implements MouseListener {
 				size = Integer.parseInt(s.substring(0, 1));
 				System.out.println(size);
 			}
+			if ((s = reader.readLine()) != null) {
+				redLoc = s;
+				System.out.println(s);
+			}
 			while ((s = reader.readLine()) != null) {
 				list.add(s);
 				System.out.println(s);
 			}
 			reader.close();
+			locations = new ArrayList<String>(list);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -183,39 +188,49 @@ public class Grid implements MouseListener {
 	public void createRequiredButtons() {
 		Random r = new Random(System.currentTimeMillis());
 		buttonGrid = new Button[size][size];
-		String[] req = new String[] { "1x2", "1x3", "2x1", "3x1" };
 
 		// initialize grid to blank tiles
 		for (int i = 0; i < size; i++) {
 			for (int j = 0; j < size; j++) {
-				Button b = new Button(i, j, "blank");
+				Button b = new Button(i, j, 1, 1);
 				b.setBlank(true);
 				b.addMouseListener(this);
 				buttonGrid[i][j] = b;
 			}
 		}
 
-		int redI = r.nextInt(size / 2) + (size / 2);
-		int redJ1 = r.nextInt(size / 2 - 1);
-		int redJ2;
-		if (redJ1 == size - 1) {
-			redJ2 = redJ1 - 1;
-		} else {
-			redJ2 = redJ1 + 1;
-		}
+		String[] redCarData = redLoc.split(" ");
+		int redI = Integer.parseInt(redCarData[0]) - 1;
+		int redJ1 = Integer.parseInt(redCarData[1]) - 1;
+		int redJ2 = Integer.parseInt(redCarData[1]);
+		int redH = Integer.parseInt(redCarData[2]);
+		int redW = Integer.parseInt(redCarData[3]);
+
 		Button redCar1 = buttonGrid[redI][redJ1];
 		Button redCar2 = buttonGrid[redI][redJ2];
-		redCar1.setAttributes("redcar", "1x2", (redJ2 > redJ1) ? 0 : 1, new Color(255, 0, 0), false);
-		redCar2.setAttributes("redcar", "1x2", (redJ2 > redJ1) ? 1 : 0, new Color(255, 0, 0), false);
-		redRow = redI;
+		redCar1.setAttributes(redCarData[4], redH, redW, 0, new Color(255, 0, 0), false);
+		redCar2.setAttributes(redCarData[4], redH, redW, 1, new Color(255, 0, 0), false);
 
-		for (String s : req) {
-			String[] dims = s.split("x");
-			int dimI = Integer.parseInt(dims[0]);
-			int dimJ = Integer.parseInt(dims[1]);
+		int color = 0;
+		for (String s : locations) {
+			Color c = colors[color];
 
+			String[] vehicleData = s.split(" ");
+			int vi = Integer.parseInt(vehicleData[0]) - 1;
+			int vj = Integer.parseInt(vehicleData[1]) - 1;
+			int vh = Integer.parseInt(vehicleData[2]);
+			int vw = Integer.parseInt(vehicleData[3]);
+
+			int counter = 0;
+			for (int i = vi; i < (vi + vh); i++) {
+				for (int j = vj; j < (vj + vw); j++) {
+					Button vehicle = buttonGrid[i][j];
+					vehicle.setAttributes(vehicleData[4], vh, vw, counter, c, false);
+					counter++;
+				}
+			}
+			color = (color >= 10) ? 0 : (color + 1);
 		}
-
 	}
 
 	public void createColors() {
@@ -235,20 +250,45 @@ public class Grid implements MouseListener {
 	public void performMove(int destI, int destJ) {
 		int startI = selectedButton.getI();
 		int startJ = selectedButton.getJ();
+		int desiredI = destI;
+		int desiredJ = destJ;
 		int endI = destI;
 		int endJ = destJ;
+
+		if (startI == desiredI && selectedButton.getH() == 1) {
+
+		}
 
 	}
 
 	public void selectButton(Button b, boolean val) {
-		if (val == true) {
-			selectedButton = b;
-		}
-		selectedButton.setSelected(val);
-		if (b.getType().equals("1x2")) {
-			int j = (b.getPosition() == 0) ? (b.getJ() + 1) : (b.getJ() - 1);
-			Button other = buttonGrid[b.getI()][j];
-			other.setSelected(val);
+		
+		if (b.getH() == 1) {
+			int i = b.getI();
+			int jstart = b.getJ()-b.getPosition();
+			
+			if (val == true) {
+				selectedButton = buttonGrid[i][jstart];
+			}
+			selectedButton.setSelected(val);
+			
+			for (int j = jstart; j < (selectedButton.getW() + jstart); j++) {
+				Button other = buttonGrid[i][j];
+				other.setSelected(val);
+			}
+		} else if (b.getW() == 1) {
+			int istart = b.getI() - b.getPosition();
+			int j = b.getJ();
+
+			if (val == true) {
+				selectedButton = buttonGrid[istart][j];
+			}
+			selectedButton.setSelected(val);
+
+			for (int i = istart; i < (selectedButton.getH() + istart); i++) {
+				Button other = buttonGrid[i][j];
+				other.setSelected(val);
+			}
 		}
 	}
 

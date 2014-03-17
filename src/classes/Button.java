@@ -7,18 +7,22 @@ import javax.swing.JLabel;
 
 public class Button extends JLabel {
 
+	private static final long serialVersionUID = 1L;
+
 	private int i, j;
 	private int position;
-	private String type;
+	private int h;
+	private int w;
 	private String tag;
 	private Color c;
 	private boolean selected;
 	private boolean blank;
 
-	public Button(int i, int j, String type) {
+	public Button(int i, int j, int h, int w) {
 		this.i = i;
 		this.j = j;
-		this.type = type;
+		this.h = h;
+		this.w = w;
 
 		tag = "blank";
 		selected = false;
@@ -27,9 +31,10 @@ public class Button extends JLabel {
 		setOpaque(true);
 	}
 	
-	public void setAttributes(String tag, String type, int pos, Color c, boolean blank) {
+	public void setAttributes(String tag, int h, int w, int pos, Color c, boolean blank) {
 		this.tag = tag;
-		this.type = type;
+		this.h = h;
+		this.w = w;
 		this.position = pos;
 		this.c = c;
 		this.blank = blank;
@@ -63,20 +68,26 @@ public class Button extends JLabel {
 	public void setSelected(boolean selected) {
 		this.selected = selected;
 		if (selected == true) {
-			String[] dims = type.split("x");
-			int dimI = Integer.parseInt(dims[0]);
-			int dimJ = Integer.parseInt(dims[1]);
-
-			if (dimI == 1) {
+			if (h == 1) {
 				if (position == 0) {
 					setBorder(BorderFactory.createMatteBorder(2, 2, 2, 0, Color.black));
-				} else if (position == dimJ - 1) {
+				} else if (position == w - 1) {
 					setBorder(BorderFactory.createMatteBorder(2, 0, 2, 2, Color.black));
 				} else {
 					setBorder(BorderFactory.createMatteBorder(2, 0, 2, 0, Color.black));
 				}
+			} else if (w == 1) {
+				if (position == 0) {
+					setBorder(BorderFactory.createMatteBorder(2, 2, 0, 2, Color.black));
+				} else if (position == h - 1) {
+					setBorder(BorderFactory.createMatteBorder(0, 2, 2, 2, Color.black));
+				} else {
+					setBorder(BorderFactory.createMatteBorder(0, 2, 0, 2, Color.black));
+				}
 			}
 
+		} else if (blank == true) {
+			setBorder(BorderFactory.createLineBorder(Color.lightGray, 1));
 		} else {
 			setBorder(null);
 		}
@@ -111,14 +122,6 @@ public class Button extends JLabel {
 		this.position = position;
 	}
 
-	public String getType() {
-		return type;
-	}
-
-	public void setType(String type) {
-		this.type = type;
-	}
-
 	public String getTag() {
 		return tag;
 	}
@@ -127,4 +130,19 @@ public class Button extends JLabel {
 		this.tag = tag;
 	}
 
+	public int getH() {
+		return h;
+	}
+
+	public void setH(int h) {
+		this.h = h;
+	}
+
+	public int getW() {
+		return w;
+	}
+
+	public void setW(int w) {
+		this.w = w;
+	}
 }
