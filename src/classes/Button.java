@@ -23,6 +23,7 @@ public class Button extends JLabel {
 		this.j = j;
 		this.h = h;
 		this.w = w;
+		this.position = -1;
 
 		tag = "blank";
 		selected = false;

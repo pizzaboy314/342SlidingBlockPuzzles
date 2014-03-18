@@ -248,15 +248,94 @@ public class Grid implements MouseListener {
 	}
 
 	public void performMove(int destI, int destJ) {
-		int startI = selectedButton.getI();
-		int startJ = selectedButton.getJ();
-		int desiredI = destI;
-		int desiredJ = destJ;
+		Button startB = selectedButton;
+		int h = startB.getH();
+		int w = startB.getW();
+		int startI = startB.getI();
+		int startJ = startB.getJ();
 		int endI = destI;
 		int endJ = destJ;
 
-		if (startI == desiredI && selectedButton.getH() == 1) {
+		if (startI == endI && h == 1) {
+			if (endJ > startJ) {
+				int k = startJ + w;
+				while ((k <= endJ) && buttonGrid[startI][k].isBlank() == true) {
+					Button toMove = null;
+					Button dest = null;
+					for (int m = 0; m < w; m++) {
+						toMove = buttonGrid[startI][startJ + w - 1 - m];
+						dest = buttonGrid[startI][k - m];
 
+						dest.setAttributes(toMove.getTag(), toMove.getH(), toMove.getW(), toMove.getPosition(), toMove.getC(), toMove.isBlank());
+						toMove.setAttributes("blank", 1, 1, -1, new Color(210, 210, 210), true);
+						toMove.setSelected(false);
+					}
+					k++;
+					startB = dest;
+					startJ = startB.getJ();
+				}
+				selectedButton = startB;
+			} else {
+				int k = startJ - 1;
+				while ((k >= endJ) && buttonGrid[startI][k].isBlank() == true) {
+					Button toMove = null;
+					Button dest = null;
+					for (int m = 0; m < w; m++) {
+						toMove = buttonGrid[startI][startJ + m];
+						dest = buttonGrid[startI][k + m];
+
+						dest.setAttributes(toMove.getTag(), toMove.getH(), toMove.getW(), toMove.getPosition(), toMove.getC(), toMove.isBlank());
+						toMove.setAttributes("blank", 1, 1, -1, new Color(210, 210, 210), true);
+						toMove.setSelected(false);
+						if (m == 0) {
+							startB = dest;
+						}
+					}
+					k--;
+					startJ = startB.getJ();
+				}
+				selectedButton = startB;
+			}
+		} else if (startJ == endJ && w == 1) {
+			if (endI > startI) {
+				int k = startI + h;
+				while ((k <= endI) && buttonGrid[k][startJ].isBlank() == true) {
+					Button toMove = null;
+					Button dest = null;
+					for (int m = 0; m < h; m++) {
+						toMove = buttonGrid[startI + h - 1 - m][startJ];
+						dest = buttonGrid[k - m][startJ];
+
+						dest.setAttributes(toMove.getTag(), toMove.getH(), toMove.getW(), toMove.getPosition(), toMove.getC(), toMove.isBlank());
+						toMove.setAttributes("blank", 1, 1, -1, new Color(210, 210, 210), true);
+						toMove.setSelected(false);
+					}
+					k++;
+					startB = dest;
+					startI = startB.getI();
+				}
+				selectedButton = startB;
+			} else {
+				int k = startI - 1;
+				while ((k >= endI) && buttonGrid[k][startJ].isBlank() == true) {
+					Button toMove = null;
+					Button dest = null;
+					for (int m = 0; m < h; m++) {
+						toMove = buttonGrid[startI + m][startJ];
+						dest = buttonGrid[k + m][startJ];
+
+						dest.setAttributes(toMove.getTag(), toMove.getH(), toMove.getW(), toMove.getPosition(), toMove.getC(), toMove.isBlank());
+						toMove.setAttributes("blank", 1, 1, -1, new Color(210, 210, 210), true);
+						toMove.setSelected(false);
+						if (m == 0) {
+							startB = dest;
+						}
+					}
+					k--;
+					startI = startB.getI();
+				}
+				selectedButton = startB;
+			}
 		}
 
 	}
@@ -295,6 +374,8 @@ public class Grid implements MouseListener {
 	@Override
 	public void mouseClicked(MouseEvent e) {
 		Button b = (Button) e.getSource();
+		System.out.print(b.getTag() + " i:" + b.getI() + " j:" + b.getJ() + " pos:" + b.getPosition());
+		System.out.println(" h:" + b.getH() + " w:" + b.getW());
 
 		if (b.isBlank() == false) {
 			if (selectedButton != null) {
