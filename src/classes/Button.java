@@ -1,6 +1,8 @@
 package classes;
 
 import java.awt.Color;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
@@ -17,6 +19,12 @@ public class Button extends JLabel {
 	private Color c;
 	private boolean selected;
 	private boolean blank;
+	ArrayList<int[]> Moves;// = new ArrayList<int[]>();//list of each vehicles possible moves
+													//Moves [0] Umoves, Moves[1] Dmoves, Moves[2]Lmoves, Moves[3]Rmoves
+	private int [] Umoves;
+	private int [] Dmoves;
+	private int [] Lmoves;
+	private int [] Rmoves;
 
 	public Button(int i, int j, int h, int w) {
 		this.i = i;
@@ -38,7 +46,7 @@ public class Button extends JLabel {
 		this.w = w;
 		this.position = pos;
 		this.c = c;
-		this.blank = blank;
+		setBlank(blank);
 
 		setBackground(c);
 		if (blank == false) {
@@ -145,5 +153,89 @@ public class Button extends JLabel {
 
 	public void setW(int w) {
 		this.w = w;
+	}
+	
+	public void setAllMoves(int [] Upmoves, int [] Dnmoves, int [] Ltmoves, int [] Rtmoves, int arraySize){
+		
+		this.Umoves = new int [arraySize-1];
+		this.Dmoves = new int [arraySize-1];
+		this.Lmoves = new int [arraySize-1];
+		this.Rmoves = new int [arraySize-1];
+		
+		for(int i=0; i<arraySize-1; i++){
+			this.Umoves[i] = Upmoves[i];
+		}
+		for(int i=0; i<arraySize-1; i++){
+			this.Dmoves[i] = Dnmoves[i];
+		}
+		for(int i=0; i<arraySize-1; i++){
+			this.Lmoves[i] = Ltmoves[i];
+		}
+		for(int i=0; i<arraySize-1; i++){
+			this.Rmoves[i] = Rtmoves[i];
+		}
+	}
+	
+public void setUMoves(int [] Upmoves, int arraySize){
+		
+	this.Umoves = new int [arraySize-1];
+	
+	for(int i=0; i<arraySize-1; i++){
+		this.Umoves[i] = Upmoves[i];
+	}
+}
+public void setDMoves(int [] Dnmoves, int arraySize){
+	
+	this.Dmoves = new int [arraySize-1];
+	
+	for(int i=0; i<arraySize-1; i++){
+		this.Dmoves[i] = Dnmoves[i];
+	}
+}
+public void setLMoves(int [] Ltmoves, int arraySize){
+	
+	this.Lmoves = new int [arraySize-1];
+	
+	for(int i=0; i<arraySize-1; i++){
+		this.Lmoves[i] = Ltmoves[i];
+	}
+}
+public void setRMoves(int [] Rtmoves, int arraySize){
+	
+	this.Rmoves = new int [arraySize-1];
+	
+	for(int i=0; i<arraySize-1; i++){
+		this.Rmoves[i] = Rtmoves[i];
+	}
+}
+	
+	public ArrayList<int []> getAllMoves(){
+		this.Moves= new ArrayList<int[]>();
+		Moves.add(0,this.Umoves);
+		Moves.add(1,this.Dmoves);
+		Moves.add(2,this.Lmoves);
+		Moves.add(3,this.Rmoves);
+		return (ArrayList<int []>)this.Moves;
+	}
+	
+	public int [] getUMoves(){
+		return this.Umoves;
+	}
+	public int [] getDMoves(){
+		return this.Dmoves;
+	}
+	
+	public int [] getLMoves(){
+		return this.Lmoves;
+	}
+	public int [] getRMoves(){
+		return Rmoves;
+	}
+	
+	public void printMoves(){
+		System.out.println("UMoves: " + Arrays.toString(this.Umoves));
+		System.out.println("DMoves: " + Arrays.toString(this.Dmoves));
+		System.out.println("LMoves: " + Arrays.toString(this.Lmoves));
+		System.out.println("RMoves: " + Arrays.toString(this.Rmoves));
 	}
 }

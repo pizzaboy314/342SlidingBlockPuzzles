@@ -13,9 +13,11 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -34,9 +36,11 @@ public class Grid implements MouseListener {
 	private JPanel bar; // contains reset/hint/solution
 	private Button[][] buttonGrid; // grid of JLabels
 	private Button selectedButton;
+	private List<TagColor> buttons;
 	private Color[] colors;
 	private List<String> locations;
 	private String redLoc;
+	private String Snapshot;	//Snapshot of the grid 
 	
 	public Grid(String windowLabel) {
 		mainFrame = new JFrame(windowLabel);
@@ -45,6 +49,10 @@ public class Grid implements MouseListener {
 
 		create_menu();
 		init();
+		Snapshot = getSnapshot();
+		System.out.println("len: "+Snapshot.length()+"| "+ Snapshot);
+//		getSolutionPath();
+		//printGrid();
 	}
 	
 	public void create_menu() {
@@ -54,6 +62,7 @@ public class Grid implements MouseListener {
 		JMenu Game = new JMenu("Game"), Help = new JMenu("Help");
 
 		JMenuItem eXit = new JMenuItem("eXit"), help = new JMenuItem("Help"), about = new JMenuItem("About");
+		JMenuItem hint = new JMenuItem("Show Hint"), soln = new JMenuItem("Show Solution");
 
 		eXit.setMnemonic('X');
 		help.setMnemonic('H');
@@ -65,6 +74,8 @@ public class Grid implements MouseListener {
 		Help.setMnemonic('H');
 		Help.add(help);
 		Help.add(about);
+		Help.add(hint);
+		Help.add(soln);
 
 		menu.add(Game);
 		menu.add(Help);
@@ -125,6 +136,14 @@ public class Grid implements MouseListener {
 				aboutWindow about = new aboutWindow();
 			}
 		});
+		hint.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				showHint();
+			}
+
+		});
 		mainFrame.setJMenuBar(menu);
 	}
 	
@@ -153,7 +172,7 @@ public class Grid implements MouseListener {
 	}
 
 	public void readFile() {
-		File file = new File("proj3a.data"); // using sample data for now
+		File file = new File("lvl1.data"); // using sample data for now
 		if (!file.exists()) {
 			try {
 				file.createNewFile();
@@ -164,7 +183,7 @@ public class Grid implements MouseListener {
 
 		List<String> list = new ArrayList<String>();
 		try {
-			BufferedReader reader = new BufferedReader(new FileReader("proj3a.data"));
+			BufferedReader reader = new BufferedReader(new FileReader("lvl1.data"));
 			String s;
 			if ((s = reader.readLine()) != null) {
 				size = Integer.parseInt(s.substring(0, 1));
@@ -187,6 +206,7 @@ public class Grid implements MouseListener {
 
 	public void createRequiredButtons() {
 		Random r = new Random(System.currentTimeMillis());
+		buttons = new ArrayList<TagColor>();
 		buttonGrid = new Button[size][size];
 
 		// initialize grid to blank tiles
@@ -210,6 +230,7 @@ public class Grid implements MouseListener {
 		Button redCar2 = buttonGrid[redI][redJ2];
 		redCar1.setAttributes(redCarData[4], redH, redW, 0, new Color(255, 0, 0), false);
 		redCar2.setAttributes(redCarData[4], redH, redW, 1, new Color(255, 0, 0), false);
+		buttons.add(new TagColor(redCar1.getTag(), redCar1.getC()));
 
 		int color = 0;
 		for (String s : locations) {
@@ -226,11 +247,125 @@ public class Grid implements MouseListener {
 				for (int j = vj; j < (vj + vw); j++) {
 					Button vehicle = buttonGrid[i][j];
 					vehicle.setAttributes(vehicleData[4], vh, vw, counter, c, false);
+					if (counter == 0) {
+						buttons.add(new TagColor(vehicle.getTag(), vehicle.getC()));
+					}
 					counter++;
 				}
 			}
 			color = (color >= 10) ? 0 : (color + 1);
 		}
+	}
+
+	public void showHint() {
+		JFrame wait = new JFrame("Hold On");
+
+		JButton msg = new JButton();
+		msg.setBorder(new EmptyBorder(10, 10, 10, 10));
+		msg.setText("Calculating...");
+
+		wait.setPreferredSize(new Dimension(200, 75));
+		wait.add(msg);
+		wait.pack();
+		wait.setVisible(true);
+
+		List<String> snaps = getSolutionPath();
+
+		wait.setVisible(false);
+
+		System.out.println("Next Step");
+		List<String> locs = parseSnapshot(snaps.get(1));
+
+		for (int i = 0; i < size; i++) {
+			for (int j = 0; j < size; j++) {
+				buttonGrid[i][j].setAttributes("blank", 1, 1, -1, new Color(210, 210, 210), true);
+			}
+		}
+
+		for (String s : locs) {
+			System.out.println(s);
+			String[] vehicleData = s.split(" ");
+			int vi = Integer.parseInt(vehicleData[0]) - 1;
+			int vj = Integer.parseInt(vehicleData[1]) - 1;
+			int vh = Integer.parseInt(vehicleData[2]);
+			int vw = Integer.parseInt(vehicleData[3]);
+
+			int counter = 0;
+			for (int i = vi; i < (vi + vh); i++) {
+				for (int j = vj; j < (vj + vw); j++) {
+					Button vehicle = buttonGrid[i][j];
+					String tag = vehicleData[4];
+					Color c = null;
+					for (TagColor t : buttons) {
+						if (t.getTag().equals(tag)) {
+							c = t.getC();
+						}
+					}
+
+					vehicle.setAttributes(tag, vh, vw, counter, c, false);
+					counter++;
+				}
+			}
+		}
+	}
+
+	public List<String> parseSnapshot(String s) {
+		List<String> locs = new ArrayList<String>();
+		snapChar[][] ingrid = new snapChar[size][size];
+		int k = 0;
+		for (int i = 0; i < size; i++) {
+			for (int j = 0; j < size; j++) {
+				ingrid[i][j] = new snapChar(s.charAt(k), false);
+				k++;
+			}
+		}
+		for (int i = 0; i < size; i++) {
+			for (int j = 0; j < size; j++) {
+				System.out.print(ingrid[i][j].getC() + " ");
+				if (j == size - 1) {
+					System.out.println();
+				}
+			}
+		}
+		System.out.println("New Button Locations");
+		for (int i = 0; i < size; i++) {
+			for (int j = 0; j < size; j++) {
+				if (ingrid[i][j].getC() != 'B' && ingrid[i][j].isChecked() == false) {
+					StringBuilder line = new StringBuilder();
+					line.append((i + 1) + " " + (j + 1) + " ");
+					char c = ingrid[i][j].getC();
+					int w = 0;
+					int h = 0;
+
+					ingrid[i][j].setChecked(true);
+
+					k = j + 1;
+					while (k < size && ingrid[i][k].getC() == ingrid[i][j].getC()) {
+						h = 1;
+						ingrid[i][k].setChecked(true);
+						k++;
+					}
+					if (h == 1) {
+						w = k - j;
+					}
+
+					k = i + 1;
+					while (k < size && ingrid[k][j].getC() == ingrid[i][j].getC()) {
+						w = 1;
+						ingrid[k][j].setChecked(true);
+						k++;
+					}
+					if (w == 1) {
+						h = k - i;
+					}
+
+					line.append(h + " " + w + " " + c);
+					locs.add(line.toString());
+				}
+			}
+		}
+
+		return locs;
 	}
 
 	public void createColors() {
@@ -385,10 +520,24 @@ public class Grid implements MouseListener {
 		} else {
 			if (selectedButton != null) {
 				performMove(b.getI(), b.getJ());
+				//printGrid();
+				//getSolutionPath();
+				if(gameWonSnap(this.Snapshot) == true)
+					System.out.println("GAME WON!!!!");
 			}
 		}
 	}
-
+	
+	private boolean gameWonSnap(String SnapShot){
+		int stringLength = SnapShot.length();
+		for(int i=0; i<stringLength; i++){
+			if(i % this.size == (this.size -1) && SnapShot.charAt(i) == 'z'){
+				return true;
+			}
+		}
+		return false;
+	}
+		 
 	@Override
 	public void mouseEntered(MouseEvent e) {
 	}
@@ -404,4 +553,94 @@ public class Grid implements MouseListener {
 	@Override
 	public void mouseReleased(MouseEvent e) {
 	}
+	
+	public String getSnapshot(){
+		  String temp;
+		  StringBuilder stringBuilder = new StringBuilder();
+		  for(int i=0; i<this.size; i++){
+		   for(int j=0; j<this.size; j++){
+			if(this.buttonGrid[i][j].getTag() == "blank"){
+				stringBuilder.append("B");
+			}
+			else
+				stringBuilder.append(this.buttonGrid[i][j].getTag());
+		   }
+		  }
+		  temp = stringBuilder.toString();
+		  return temp;
+		 }
+	
+	public List<String> getSolutionPath() {
+		this.Snapshot = getSnapshot();
+		Solutions currentSolution = new Solutions(this.Snapshot, this.buttonGrid, this.size);
+		List<String> solns = currentSolution.getSolution();
+		Collections.reverse(solns);
+		return solns;
+	}
+	
+	public void printGrid(){
+		for(int i=0; i< this.size; i++){
+			for(int j=0; j<this.size; j++){
+				if(this.buttonGrid[i][j].getTag() == "blank"){
+					System.out.printf("B ");
+				}
+				else
+					System.out.printf("%s ", this.buttonGrid[i][j].getTag());
+			}
+			System.out.println();
+		}
+	}
+	
+	private class snapChar {
+		private char c;
+		private boolean checked;
+
+		public snapChar(char c, boolean checked) {
+			this.c = c;
+			this.checked = checked;
+		}
+
+		public char getC() {
+			return c;
+		}
+
+		public void setC(char c) {
+			this.c = c;
+		}
+
+		public boolean isChecked() {
+			return checked;
+		}
+
+		public void setChecked(boolean checked) {
+			this.checked = checked;
+		}
+	}
+
+	private class TagColor {
+		private String tag;
+		private Color c;
+
+		public TagColor(String tag, Color c) {
+			this.tag = tag;
+			this.c = c;
+		}
+
+		public String getTag() {
+			return tag;
+		}
+
+		public void setTag(String tag) {
+			this.tag = tag;
+		}
+
+		public Color getC() {
+			return c;
+		}
+
+		public void setC(Color c) {
+			this.c = c;
+		}
+	}
+
 }
