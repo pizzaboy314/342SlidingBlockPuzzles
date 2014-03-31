@@ -20,7 +20,7 @@ public class Button extends JLabel {
 	private boolean selected;
 	private boolean blank;
 	ArrayList<int[]> Moves;// = new ArrayList<int[]>();//list of each vehicles possible moves
-													//Moves [0] Umoves, Moves[1] Dmoves, Moves[2]Lmoves, Moves[3]Rmoves
+	// Moves [0] Umoves, Moves[1] Dmoves, Moves[2]Lmoves, Moves[3]Rmoves
 	private int [] Umoves;
 	private int [] Dmoves;
 	private int [] Lmoves;
@@ -39,7 +39,19 @@ public class Button extends JLabel {
 
 		setOpaque(true);
 	}
-	
+
+	/**
+	 * Manually sets the attributes of this button: its tag, height, width,
+	 * position in multi-tile piece, color, and whether this button is a blank
+	 * tile.
+	 * 
+	 * @param tag
+	 * @param h
+	 * @param w
+	 * @param pos
+	 * @param c
+	 * @param blank
+	 */
 	public void setAttributes(String tag, int h, int w, int pos, Color c, boolean blank) {
 		this.tag = tag;
 		this.h = h;
@@ -74,6 +86,12 @@ public class Button extends JLabel {
 		return selected;
 	}
 
+	/**
+	 * Setter for boolean variable selected, which indicates whether or not this
+	 * button is selected. This function also sets the border around the sides
+	 * of the button so the gui shows that the button is selected.
+	 * @param selected
+	 */
 	public void setSelected(boolean selected) {
 		this.selected = selected;
 		if (selected == true) {
@@ -115,6 +133,12 @@ public class Button extends JLabel {
 		return blank;
 	}
 
+	/**
+	 * Setter for boolean variable blank, which indicates whether or not this
+	 * button is a blank tile in the grid. Also sets a light border to
+	 * distinguish blank tiles from each other.
+	 * @param blank
+	 */
 	public void setBlank(boolean blank) {
 		this.blank = blank;
 		if (blank == true) {
@@ -154,14 +178,23 @@ public class Button extends JLabel {
 	public void setW(int w) {
 		this.w = w;
 	}
-	
+
+	/**
+	 * Sets all possible moves in all directions.
+	 * 
+	 * @param Upmoves
+	 * @param Dnmoves
+	 * @param Ltmoves
+	 * @param Rtmoves
+	 * @param arraySize
+	 */
 	public void setAllMoves(int [] Upmoves, int [] Dnmoves, int [] Ltmoves, int [] Rtmoves, int arraySize){
-		
+
 		this.Umoves = new int [arraySize-1];
 		this.Dmoves = new int [arraySize-1];
 		this.Lmoves = new int [arraySize-1];
 		this.Rmoves = new int [arraySize-1];
-		
+
 		for(int i=0; i<arraySize-1; i++){
 			this.Umoves[i] = Upmoves[i];
 		}
@@ -175,40 +208,72 @@ public class Button extends JLabel {
 			this.Rmoves[i] = Rtmoves[i];
 		}
 	}
-	
-public void setUMoves(int [] Upmoves, int arraySize){
-		
-	this.Umoves = new int [arraySize-1];
-	
-	for(int i=0; i<arraySize-1; i++){
-		this.Umoves[i] = Upmoves[i];
+
+	/**
+	 * Sets the possible moves upwards.
+	 * 
+	 * @param Upmoves
+	 * @param arraySize
+	 */
+	public void setUMoves(int[] Upmoves, int arraySize) {
+
+		this.Umoves = new int[arraySize - 1];
+
+		for (int i = 0; i < arraySize - 1; i++) {
+			this.Umoves[i] = Upmoves[i];
+		}
 	}
-}
-public void setDMoves(int [] Dnmoves, int arraySize){
-	
-	this.Dmoves = new int [arraySize-1];
-	
-	for(int i=0; i<arraySize-1; i++){
-		this.Dmoves[i] = Dnmoves[i];
+
+	/**
+	 * Sets the possible moves downwards.
+	 * 
+	 * @param Dnmoves
+	 * @param arraySize
+	 */
+	public void setDMoves(int[] Dnmoves, int arraySize) {
+
+		this.Dmoves = new int[arraySize - 1];
+
+		for (int i = 0; i < arraySize - 1; i++) {
+			this.Dmoves[i] = Dnmoves[i];
+		}
 	}
-}
-public void setLMoves(int [] Ltmoves, int arraySize){
-	
-	this.Lmoves = new int [arraySize-1];
-	
-	for(int i=0; i<arraySize-1; i++){
-		this.Lmoves[i] = Ltmoves[i];
+
+	/**
+	 * Sets the possible moves leftwards.
+	 * 
+	 * @param Ltmoves
+	 * @param arraySize
+	 */
+	public void setLMoves(int[] Ltmoves, int arraySize) {
+
+		this.Lmoves = new int[arraySize - 1];
+
+		for (int i = 0; i < arraySize - 1; i++) {
+			this.Lmoves[i] = Ltmoves[i];
+		}
 	}
-}
-public void setRMoves(int [] Rtmoves, int arraySize){
-	
-	this.Rmoves = new int [arraySize-1];
-	
-	for(int i=0; i<arraySize-1; i++){
-		this.Rmoves[i] = Rtmoves[i];
+
+	/**
+	 * Sets the possible moves rightwards.
+	 * 
+	 * @param Rtmoves
+	 * @param arraySize
+	 */
+	public void setRMoves(int[] Rtmoves, int arraySize) {
+
+		this.Rmoves = new int[arraySize - 1];
+
+		for (int i = 0; i < arraySize - 1; i++) {
+			this.Rmoves[i] = Rtmoves[i];
+		}
 	}
-}
-	
+
+	/**
+	 * Gets the list of all possible moves.
+	 * 
+	 * @return
+	 */
 	public ArrayList<int []> getAllMoves(){
 		this.Moves= new ArrayList<int[]>();
 		Moves.add(0,this.Umoves);
@@ -217,21 +282,24 @@ public void setRMoves(int [] Rtmoves, int arraySize){
 		Moves.add(3,this.Rmoves);
 		return (ArrayList<int []>)this.Moves;
 	}
-	
+
 	public int [] getUMoves(){
 		return this.Umoves;
 	}
 	public int [] getDMoves(){
 		return this.Dmoves;
 	}
-	
+
 	public int [] getLMoves(){
 		return this.Lmoves;
 	}
 	public int [] getRMoves(){
 		return Rmoves;
 	}
-	
+
+	/**
+	 * Used for debugging, simply prints all possible moves.
+	 */
 	public void printMoves(){
 		System.out.println("UMoves: " + Arrays.toString(this.Umoves));
 		System.out.println("DMoves: " + Arrays.toString(this.Dmoves));

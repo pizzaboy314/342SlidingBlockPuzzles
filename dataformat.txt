@@ -1,0 +1,23 @@
+File naming convention: lvl#.data where # is the next integer after the last file.
+EX: lvl1.data, lvl2.data, lvl3.data, lvl4.data, lvl5.data
+New file added would be lvl6.data 
+
+-- File content format --
+Line 1: size of grid
+Line 2: location and specs for the Z piece. The Z piece line always goes first.
+Line 3+: location and specs for the rest of the pieces
+
+The format of a piece line is: ROW COLUMN HEIGHT WIDTH TAG
+ROW (starting at 1, not 0): which row the piece starts at
+COLUMN (starting at 1, not 0): which column the piece starts at
+HEIGHT: how many rows the piece takes up
+WIDTH: how many colums the piece takes up
+TAG: a tag string as an identifier for the piece. The Z piece always has tag "z".
+Otherwise tags run in order 1 2 3 4 5 6 7 8 9 a b c d e f g ......etc. Stick to a single character.
+
+6			// The size of the grid, 6x6
+3 2 1 2 z	// z piece starts at i,j = 3,2 and is a horizontal piece with length 2
+1 1 1 2 1
+2 1 3 1 2	// piece 2 starts at i,j = 2,1 and is a vertical piece with length 3
+5 1 2 1 3
+2 4 3 1 4

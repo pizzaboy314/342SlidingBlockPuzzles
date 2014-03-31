@@ -16,21 +16,26 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
 public class Grid implements MouseListener {
-	
+
 	private int size = 6; // SIZE OF BOARD
 	private int boardSize;
-	
+
+	private String windowLabel;
 	private JFrame mainFrame; // main window
 	private JPanel content; // to contain the reset/hint bar and main board
 	private JPanel bar; // contains reset/hint/solution
@@ -39,22 +44,57 @@ public class Grid implements MouseListener {
 	private List<TagColor> buttons;
 	private Color[] colors;
 	private List<String> locations;
+	private int redRow;
 	private String redLoc;
 	private String Snapshot;	//Snapshot of the grid 
-	
+	private int fileNum = 0;
+	private int fileCounter = 1;
+
+	TimerTask solveAnim;
+	Timer animTimer;
+	List<String> soln;
+
 	public Grid(String windowLabel) {
-		mainFrame = new JFrame(windowLabel);
+		this.windowLabel = windowLabel;
+		mainFrame = new JFrame(windowLabel + " - Level " + fileCounter);
 		mainFrame.setResizable(false);
 		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		create_menu();
+		countFiles();
+
+		buttonGrid = new Button[size][size];
+
+		// initialize grid to blank tiles
+		for (int i = 0; i < size; i++) {
+			for (int j = 0; j < size; j++) {
+				Button b = new Button(i, j, 1, 1);
+				b.setBlank(true);
+				b.addMouseListener(this);
+				buttonGrid[i][j] = b;
+			}
+		}
+		boardSize = size * 80;
+		JPanel panel = new JPanel(new GridLayout(size, size));
+		panel.setPreferredSize(new Dimension(boardSize, boardSize));
+		for (int i = 0; i < size; i++) {
+			for (int j = 0; j < size; j++) {
+				Button b = buttonGrid[i][j];
+				panel.add(b);
+			}
+		}
+
+		mainFrame.add(panel);
+		mainFrame.pack();
+		mainFrame.setVisible(true);
+
 		init();
-		Snapshot = getSnapshot();
-		System.out.println("len: "+Snapshot.length()+"| "+ Snapshot);
-//		getSolutionPath();
-		//printGrid();
 	}
-	
+
+	/**
+	 * Creates the JMenu that contains buttons Exit, Help, About, Show Hint,
+	 * Show Solution, and Reset Board
+	 */
 	public void create_menu() {
 
 		JMenuBar menu = new JMenuBar();
@@ -62,7 +102,7 @@ public class Grid implements MouseListener {
 		JMenu Game = new JMenu("Game"), Help = new JMenu("Help");
 
 		JMenuItem eXit = new JMenuItem("eXit"), help = new JMenuItem("Help"), about = new JMenuItem("About");
-		JMenuItem hint = new JMenuItem("Show Hint"), soln = new JMenuItem("Show Solution");
+		JMenuItem hint = new JMenuItem("Show Hint"), soln = new JMenuItem("Show Solution"), reset = new JMenuItem("Reset Board");
 
 		eXit.setMnemonic('X');
 		help.setMnemonic('H');
@@ -76,6 +116,7 @@ public class Grid implements MouseListener {
 		Help.add(about);
 		Help.add(hint);
 		Help.add(soln);
+		Help.add(reset);
 
 		menu.add(Game);
 		menu.add(Help);
@@ -144,35 +185,67 @@ public class Grid implements MouseListener {
 			}
 
 		});
+		soln.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				showSoln();
+			}
+
+		});
+		reset.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				init();
+			}
+
+		});
 		mainFrame.setJMenuBar(menu);
 	}
-	
+
+	/**
+	 * Reads level file and initializes the board to a playable state.
+	 */
 	public void init(){
 		createColors();
 		readFile();
 
-		boardSize = size * 80;
-
-		JPanel panel = new JPanel(new GridLayout(size, size));
-		panel.setPreferredSize(new Dimension(boardSize, boardSize));
-
-		createRequiredButtons();
+		mainFrame.setTitle(windowLabel + " - Level " + fileCounter);
 
 		for (int i = 0; i < size; i++) {
 			for (int j = 0; j < size; j++) {
-				Button b = buttonGrid[i][j];
-				panel.add(b);
+				buttonGrid[i][j].setAttributes("blank", 1, 1, -1, new Color(210, 210, 210), true);
 			}
 		}
+		createRequiredButtons();
+		mainFrame.repaint();
 
-		mainFrame.add(panel);
-		mainFrame.pack();
-		mainFrame.setVisible(true);
-
+		Snapshot = getSnapshot();
+		System.out.println("len: " + Snapshot.length() + "| " + Snapshot);
 	}
 
+	/**
+	 * Counts the number of level files in the project directory.
+	 */
+	public void countFiles() {
+		File[] files = new File(System.getProperty("user.dir")).listFiles();
+		Pattern p = Pattern.compile("lvl\\d\\.data");
+
+		for (File file : files) {
+			Matcher m = p.matcher(file.getName());
+			if (file.isFile() && m.find()) {
+				fileNum++;
+			}
+		}
+	}
+
+	/**
+	 * Reads the current level file and parses the locations for all the game
+	 * pieces.
+	 */
 	public void readFile() {
-		File file = new File("lvl1.data"); // using sample data for now
+		File file = new File("lvl" + fileCounter + ".data");
 		if (!file.exists()) {
 			try {
 				file.createNewFile();
@@ -183,7 +256,7 @@ public class Grid implements MouseListener {
 
 		List<String> list = new ArrayList<String>();
 		try {
-			BufferedReader reader = new BufferedReader(new FileReader("lvl1.data"));
+			BufferedReader reader = new BufferedReader(new FileReader("lvl" + fileCounter + ".data"));
 			String s;
 			if ((s = reader.readLine()) != null) {
 				size = Integer.parseInt(s.substring(0, 1));
@@ -204,20 +277,13 @@ public class Grid implements MouseListener {
 		}
 	}
 
+	/**
+	 * Creates the game pieces from the locations listed in the level file and
+	 * updates the locations in the grid.
+	 */
 	public void createRequiredButtons() {
 		Random r = new Random(System.currentTimeMillis());
 		buttons = new ArrayList<TagColor>();
-		buttonGrid = new Button[size][size];
-
-		// initialize grid to blank tiles
-		for (int i = 0; i < size; i++) {
-			for (int j = 0; j < size; j++) {
-				Button b = new Button(i, j, 1, 1);
-				b.setBlank(true);
-				b.addMouseListener(this);
-				buttonGrid[i][j] = b;
-			}
-		}
 
 		String[] redCarData = redLoc.split(" ");
 		int redI = Integer.parseInt(redCarData[0]) - 1;
@@ -225,6 +291,7 @@ public class Grid implements MouseListener {
 		int redJ2 = Integer.parseInt(redCarData[1]);
 		int redH = Integer.parseInt(redCarData[2]);
 		int redW = Integer.parseInt(redCarData[3]);
+		redRow = redI;
 
 		Button redCar1 = buttonGrid[redI][redJ1];
 		Button redCar2 = buttonGrid[redI][redJ2];
@@ -257,24 +324,19 @@ public class Grid implements MouseListener {
 		}
 	}
 
+	/**
+	 * Gets the shortest solution path and performs the first move in the resulting list of moves.
+	 */
 	public void showHint() {
-		JFrame wait = new JFrame("Hold On");
-
-		JButton msg = new JButton();
-		msg.setBorder(new EmptyBorder(10, 10, 10, 10));
-		msg.setText("Calculating...");
-
-		wait.setPreferredSize(new Dimension(200, 75));
-		wait.add(msg);
-		wait.pack();
-		wait.setVisible(true);
+		mainFrame.setTitle(windowLabel + " - Level " + fileCounter + " - Calculating...");
 
 		List<String> snaps = getSolutionPath();
+		snaps.remove(snaps.get(0));
 
-		wait.setVisible(false);
+		mainFrame.setTitle(windowLabel + " - Level " + fileCounter);
 
 		System.out.println("Next Step");
-		List<String> locs = parseSnapshot(snaps.get(1));
+		List<String> locs = parseSnapshot(snaps.get(0));
 
 		for (int i = 0; i < size; i++) {
 			for (int j = 0; j < size; j++) {
@@ -309,6 +371,32 @@ public class Grid implements MouseListener {
 		}
 	}
 
+	/**
+	 * Gets the shortest solution path and performs all the moves in the
+	 * resulting list of moves by starting a TimerTask that performs one move
+	 * per second.
+	 */
+	public void showSoln() {
+		mainFrame.setTitle(windowLabel + " - Level " + fileCounter + " - Calculating...");
+
+		soln = getSolutionPath();
+		soln.remove(soln.get(0));
+
+		mainFrame.setTitle(windowLabel + " - Level " + fileCounter);
+
+		solveAnim = new repaintTask();
+		animTimer = new Timer(true);
+		animTimer.scheduleAtFixedRate(solveAnim, 0, 1000);
+
+	}
+
+	/**
+	 * Takes a single-line snapshot string and parses individual button
+	 * locations from the snapshot's grid.
+	 * 
+	 * @param s
+	 * @return A list of button locations parsed from snapshot s.
+	 */
 	public List<String> parseSnapshot(String s) {
 		List<String> locs = new ArrayList<String>();
 		snapChar[][] ingrid = new snapChar[size][size];
@@ -368,6 +456,9 @@ public class Grid implements MouseListener {
 		return locs;
 	}
 
+	/**
+	 * Manually sets the color palette from which button colors will be picked.
+	 */
 	public void createColors() {
 		colors = new Color[10];
 		colors[0] = new Color(0, 255, 255);
@@ -382,6 +473,12 @@ public class Grid implements MouseListener {
 		colors[9] = new Color(148, 0, 211);
 	}
 
+	/**
+	 * Moves the selected button to the indicated location (destI, destJ).
+	 * 
+	 * @param destI
+	 * @param destJ
+	 */
 	public void performMove(int destI, int destJ) {
 		Button startB = selectedButton;
 		int h = startB.getH();
@@ -472,20 +569,35 @@ public class Grid implements MouseListener {
 				selectedButton = startB;
 			}
 		}
+		Button win = buttonGrid[redRow][size - 2];
+		if (win.getTag().equals("z") && win.getPosition() == 0) {
+			if (fileCounter == fileNum) {
+				endLevel("End of last level. Click OK to close dialog.", false);
+			} else {
+				endLevel("End of level. Click OK to start the next level.", true);
+			}
+		}
 
 	}
 
+	/**
+	 * Selects the indicated button and adjacent tiles that belong to the same
+	 * piece.
+	 * 
+	 * @param b
+	 * @param val
+	 */
 	public void selectButton(Button b, boolean val) {
-		
+
 		if (b.getH() == 1) {
 			int i = b.getI();
 			int jstart = b.getJ()-b.getPosition();
-			
+
 			if (val == true) {
 				selectedButton = buttonGrid[i][jstart];
 			}
 			selectedButton.setSelected(val);
-			
+
 			for (int j = jstart; j < (selectedButton.getW() + jstart); j++) {
 				Button other = buttonGrid[i][j];
 				other.setSelected(val);
@@ -506,6 +618,27 @@ public class Grid implements MouseListener {
 		}
 	}
 
+	/**
+	 * Shows end-of-level popup dialog and advances the level to the next one if
+	 * there are more level files remaining in the project directory.
+	 * 
+	 * @param message
+	 * @param nextLvl
+	 */
+	public void endLevel(String message, boolean nextLvl) {
+		JOptionPane.showMessageDialog(null, message, "End Of Level", JOptionPane.INFORMATION_MESSAGE);
+		if (nextLvl == true) {
+			fileCounter++;
+			printGrid();
+			init();
+			printGrid();
+		}
+	}
+
+	/**
+	 * Mouse handler for all Buttons in the grid. Calls selectButton when
+	 * appropriate.
+	 */
 	@Override
 	public void mouseClicked(MouseEvent e) {
 		Button b = (Button) e.getSource();
@@ -520,14 +653,20 @@ public class Grid implements MouseListener {
 		} else {
 			if (selectedButton != null) {
 				performMove(b.getI(), b.getJ());
-				//printGrid();
-				//getSolutionPath();
-				if(gameWonSnap(this.Snapshot) == true)
+				if (gameWonSnap(this.Snapshot) == true) {
 					System.out.println("GAME WON!!!!");
+				}
 			}
 		}
 	}
-	
+
+	/**
+	 * Initial function to determine whether or not the user has won. Currently
+	 * not in use.
+	 * 
+	 * @param SnapShot
+	 * @return
+	 */
 	private boolean gameWonSnap(String SnapShot){
 		int stringLength = SnapShot.length();
 		for(int i=0; i<stringLength; i++){
@@ -537,7 +676,7 @@ public class Grid implements MouseListener {
 		}
 		return false;
 	}
-		 
+
 	@Override
 	public void mouseEntered(MouseEvent e) {
 	}
@@ -553,23 +692,32 @@ public class Grid implements MouseListener {
 	@Override
 	public void mouseReleased(MouseEvent e) {
 	}
-	
+
+	/**
+	 * Gets the snapshot of the current board.
+	 * 
+	 * @return
+	 */
 	public String getSnapshot(){
-		  String temp;
-		  StringBuilder stringBuilder = new StringBuilder();
-		  for(int i=0; i<this.size; i++){
-		   for(int j=0; j<this.size; j++){
-			if(this.buttonGrid[i][j].getTag() == "blank"){
-				stringBuilder.append("B");
+		String temp;
+		StringBuilder stringBuilder = new StringBuilder();
+		for (int i = 0; i < this.size; i++) {
+			for (int j = 0; j < this.size; j++) {
+				if (this.buttonGrid[i][j].getTag() == "blank") {
+					stringBuilder.append("B");
+				} else
+					stringBuilder.append(this.buttonGrid[i][j].getTag());
 			}
-			else
-				stringBuilder.append(this.buttonGrid[i][j].getTag());
-		   }
-		  }
-		  temp = stringBuilder.toString();
-		  return temp;
-		 }
-	
+		}
+		temp = stringBuilder.toString();
+		return temp;
+	}
+
+	/**
+	 * Gets the shortest solution path from the algorithm in Solutions.
+	 * 
+	 * @return
+	 */
 	public List<String> getSolutionPath() {
 		this.Snapshot = getSnapshot();
 		Solutions currentSolution = new Solutions(this.Snapshot, this.buttonGrid, this.size);
@@ -577,20 +725,30 @@ public class Grid implements MouseListener {
 		Collections.reverse(solns);
 		return solns;
 	}
-	
+
+	/**
+	 * Utility function to print out grid values.
+	 */
 	public void printGrid(){
-		for(int i=0; i< this.size; i++){
-			for(int j=0; j<this.size; j++){
-				if(this.buttonGrid[i][j].getTag() == "blank"){
-					System.out.printf("B ");
+		for (int i = 0; i < size; i++) {
+			for (int j = 0; j < size; j++) {
+				if (buttonGrid[i][j].getTag() == "blank") {
+					System.out.print("B ");
 				}
 				else
-					System.out.printf("%s ", this.buttonGrid[i][j].getTag());
+					System.out.print(buttonGrid[i][j].getTag() + " ");
 			}
 			System.out.println();
 		}
 	}
-	
+
+	/**
+	 * Utility data structure for parseSnapshot method to keep track of which
+	 * grid locations have been checked.
+	 * 
+	 * @author bryan
+	 * 
+	 */
 	private class snapChar {
 		private char c;
 		private boolean checked;
@@ -617,6 +775,13 @@ public class Grid implements MouseListener {
 		}
 	}
 
+	/**
+	 * Utility data structure to associate each board piece's tag with its color
+	 * so pieces keep their color when moved by showHint or showSoln.
+	 * 
+	 * @author bryan
+	 * 
+	 */
 	private class TagColor {
 		private String tag;
 		private Color c;
@@ -640,6 +805,66 @@ public class Grid implements MouseListener {
 
 		public void setC(Color c) {
 			this.c = c;
+		}
+	}
+
+	/**
+	 * Scheduled task (once per second) that performs the solve animation for
+	 * every move in the solution list.
+	 * 
+	 * @author bryan
+	 * 
+	 */
+	private class repaintTask extends TimerTask {
+		int i = 0;
+		@Override
+		public void run() {
+			String snap = soln.get(0);
+			System.out.println("Next Step");
+			List<String> locs = parseSnapshot(snap);
+
+			for (int i = 0; i < size; i++) {
+				for (int j = 0; j < size; j++) {
+					buttonGrid[i][j].setAttributes("blank", 1, 1, -1, new Color(210, 210, 210), true);
+				}
+			}
+
+			for (String s : locs) {
+				System.out.println(s);
+				String[] vehicleData = s.split(" ");
+				int vi = Integer.parseInt(vehicleData[0]) - 1;
+				int vj = Integer.parseInt(vehicleData[1]) - 1;
+				int vh = Integer.parseInt(vehicleData[2]);
+				int vw = Integer.parseInt(vehicleData[3]);
+
+				int counter = 0;
+				for (int i = vi; i < (vi + vh); i++) {
+					for (int j = vj; j < (vj + vw); j++) {
+						Button vehicle = buttonGrid[i][j];
+						String tag = vehicleData[4];
+						Color c = null;
+						for (TagColor t : buttons) {
+							if (t.getTag().equals(tag)) {
+								c = t.getC();
+							}
+						}
+
+						vehicle.setAttributes(tag, vh, vw, counter, c, false);
+						counter++;
+					}
+				}
+			}
+			mainFrame.repaint();
+
+			soln.remove(soln.get(0));
+			if (soln.size() <= 0) {
+				animTimer.cancel();
+				if (fileCounter == fileNum) {
+					endLevel("End of last level. Click OK to close dialog.", false);
+				} else {
+					endLevel("End of level. Click OK to start the next level.", true);
+				}
+			}
 		}
 	}
 
