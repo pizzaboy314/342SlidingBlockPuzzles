@@ -54,6 +54,12 @@ public class Grid implements MouseListener {
 	Timer animTimer;
 	List<String> soln;
 
+	/**
+	 * Constructor for this Grid; sets the text of the JFrame window, initalizes
+	 * all buttons to blank, and calls function init().
+	 * 
+	 * @param windowLabel
+	 */
 	public Grid(String windowLabel) {
 		this.windowLabel = windowLabel;
 		mainFrame = new JFrame(windowLabel + " - Level " + fileCounter);
@@ -677,18 +683,30 @@ public class Grid implements MouseListener {
 		return false;
 	}
 
+	/**
+	 * Required function stub for MouseListener.
+	 */
 	@Override
 	public void mouseEntered(MouseEvent e) {
 	}
 
+	/**
+	 * Required function stub for MouseListener.
+	 */
 	@Override
 	public void mouseExited(MouseEvent e) {
 	}
 
+	/**
+	 * Required function stub for MouseListener.
+	 */
 	@Override
 	public void mousePressed(MouseEvent e) {
 	}
 
+	/**
+	 * Required function stub for MouseListener.
+	 */
 	@Override
 	public void mouseReleased(MouseEvent e) {
 	}
@@ -749,7 +767,7 @@ public class Grid implements MouseListener {
 	 * @author bryan
 	 * 
 	 */
-	private class snapChar {
+	public class snapChar {
 		private char c;
 		private boolean checked;
 
@@ -782,7 +800,7 @@ public class Grid implements MouseListener {
 	 * @author bryan
 	 * 
 	 */
-	private class TagColor {
+	public class TagColor {
 		private String tag;
 		private Color c;
 
@@ -815,7 +833,7 @@ public class Grid implements MouseListener {
 	 * @author bryan
 	 * 
 	 */
-	private class repaintTask extends TimerTask {
+	public class repaintTask extends TimerTask {
 		int i = 0;
 		@Override
 		public void run() {

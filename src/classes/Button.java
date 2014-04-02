@@ -1,7 +1,6 @@
 package classes;
 
 import java.awt.Color;
-import java.util.ArrayList;
 import java.util.Arrays;
 
 import javax.swing.BorderFactory;
@@ -19,13 +18,20 @@ public class Button extends JLabel {
 	private Color c;
 	private boolean selected;
 	private boolean blank;
-	ArrayList<int[]> Moves;// = new ArrayList<int[]>();//list of each vehicles possible moves
-	// Moves [0] Umoves, Moves[1] Dmoves, Moves[2]Lmoves, Moves[3]Rmoves
-	private int [] Umoves;
-	private int [] Dmoves;
-	private int [] Lmoves;
-	private int [] Rmoves;
+	private int[] Umoves;
+	private int[] Dmoves;
+	private int[] Lmoves;
+	private int[] Rmoves;
 
+	/**
+	 * Constructor for this button; sets its i,j location in the grid as well as
+	 * its height (h) and width (w).
+	 * 
+	 * @param i
+	 * @param j
+	 * @param h
+	 * @param w
+	 */
 	public Button(int i, int j, int h, int w) {
 		this.i = i;
 		this.j = j;
@@ -66,22 +72,47 @@ public class Button extends JLabel {
 		}
 	}
 
+	/**
+	 * Getter for i coordinate.
+	 * 
+	 * @return
+	 */
 	public int getI() {
 		return i;
 	}
 
+	/**
+	 * Setter for i coordinate.
+	 * 
+	 * @return
+	 */
 	public void setI(int i) {
 		this.i = i;
 	}
 
+	/**
+	 * Getter for j coordinate.
+	 * 
+	 * @return
+	 */
 	public int getJ() {
 		return j;
 	}
 
+	/**
+	 * Setter for j coordinate.
+	 * 
+	 * @return
+	 */
 	public void setJ(int j) {
 		this.j = j;
 	}
 
+	/**
+	 * Getter for boolean variable selected.
+	 * 
+	 * @return
+	 */
 	public boolean isSelected() {
 		return selected;
 	}
@@ -120,15 +151,31 @@ public class Button extends JLabel {
 		}
 	}
 
+	/**
+	 * Getter for this button's color.
+	 * 
+	 * @return
+	 */
 	public Color getC() {
 		return c;
 	}
 
+	/**
+	 * Setter for this button's color. Also sets the button's background to this
+	 * color.
+	 * 
+	 * @param c
+	 */
 	public void setC(Color c) {
 		this.c = c;
 		setBackground(c);
 	}
 
+	/**
+	 * Getter for boolean variable blank.
+	 * 
+	 * @return
+	 */
 	public boolean isBlank() {
 		return blank;
 	}
@@ -147,34 +194,74 @@ public class Button extends JLabel {
 		}
 	}
 
+	/**
+	 * Getter for this button's position in a larger piece.
+	 * 
+	 * @return
+	 */
 	public int getPosition() {
 		return position;
 	}
 
+	/**
+	 * Setter for this button's position in a larger piece.
+	 * 
+	 * @return
+	 */
 	public void setPosition(int position) {
 		this.position = position;
 	}
 
+	/**
+	 * Getter for this button's string tag.
+	 * 
+	 * @return
+	 */
 	public String getTag() {
 		return tag;
 	}
 
+	/**
+	 * Setter for this button's string tag.
+	 * 
+	 * @param tag
+	 */
 	public void setTag(String tag) {
 		this.tag = tag;
 	}
 
+	/**
+	 * Getter for this button's height.
+	 * 
+	 * @return
+	 */
 	public int getH() {
 		return h;
 	}
 
+	/**
+	 * Setter for this button's height.
+	 * 
+	 * @param h
+	 */
 	public void setH(int h) {
 		this.h = h;
 	}
 
+	/**
+	 * Getter for this button's width.
+	 * 
+	 * @return
+	 */
 	public int getW() {
 		return w;
 	}
 
+	/**
+	 * Setter for this button's width.
+	 * 
+	 * @param w
+	 */
 	public void setW(int w) {
 		this.w = w;
 	}
@@ -270,29 +357,37 @@ public class Button extends JLabel {
 	}
 
 	/**
-	 * Gets the list of all possible moves.
+	 * Getter for this button's possible moves upwards.
 	 * 
 	 * @return
 	 */
-	public ArrayList<int []> getAllMoves(){
-		this.Moves= new ArrayList<int[]>();
-		Moves.add(0,this.Umoves);
-		Moves.add(1,this.Dmoves);
-		Moves.add(2,this.Lmoves);
-		Moves.add(3,this.Rmoves);
-		return (ArrayList<int []>)this.Moves;
-	}
-
 	public int [] getUMoves(){
 		return this.Umoves;
 	}
+
+	/**
+	 * Getter for this button's possible moves downwards.
+	 * 
+	 * @return
+	 */
 	public int [] getDMoves(){
 		return this.Dmoves;
 	}
 
+	/**
+	 * Getter for this button's possible moves leftwards.
+	 * 
+	 * @return
+	 */
 	public int [] getLMoves(){
 		return this.Lmoves;
 	}
+
+	/**
+	 * Getter for this button's possible moves rightwards.
+	 * 
+	 * @return
+	 */
 	public int [] getRMoves(){
 		return Rmoves;
 	}
